@@ -13,6 +13,8 @@ class Escaner:
     #                                        METODOS PARA ESCANEO                                                #
     ############################################################################################################
 
+##############   SECCION DE IP ############################
+
     def check_ip(self, ip):
         # Comprobamos que la ip introducida es valida
         if "." in ip:
@@ -64,9 +66,40 @@ class Escaner:
     # Escanea el rango de ips de la red
     def scan_ip_range(self):
         # Mandamos un scan de ips con el rango de ips en base a la tarjeta de red
-        scan_result = self.scan_ip(self.get_ip_range())
-        self.print_result_ip(self, scan_result)
+        print("Escaneando rango de ips para la red local con la tarjeta de red por defecto")
+        input("¿Desea cambiar la interfaz por defecto? (eth0) (s/n): ")
+        if input == "s":
+            eth = input("Introduzca la interfaz: ")
+            # Comprobamos que la interfaz existe
+            if scapy.get_if_hwaddr(eth) == None:
+                print("La interfaz no existe")
+                return  # Salimos de la funcion
+        else:
+            eth = "eth0"
 
+        print("Se utilizara la mascara por defecto: /24")
+        input("¿Desea cambiar la mascara por defecto? (s/n): ")
+        if input == "s":
+            mask = input("Introduzca la mascara de red con digitos (ejemplo: 24)\n  -> ")
+            # Comprobamos que la mascara es un numero
+            if mask.isdigit():
+                # Comprobamos que la mascara esta entre 0 y 32
+                if int(mask) >= 0 and int(mask) <= 32:
+                    pass
+                else:
+                    print("La mascara no es valida")
+                    return  # Salimos de la funcion
+            
+        else:
+            mask = "24"
+        
+        host_ip = scapy.get_if_addr(eth)
+        ip_src = host_ip.split(".")
+        ip_src = ip_src[0] + "." + ip_src[1] + "." + ip_src[2] + ".1" + "/" + mask
+
+        self.scan_ip(ip_src)
+        
+################### SECCION DE PUERTOS ############################
 
     # Para mejorar el rendimiento del escaneo de puertos lo realizamos en paralelo con hilos
     def scan_ports_thread(self, ip):
@@ -76,6 +109,10 @@ class Escaner:
         for puerto in range(1, 1025):
             t = threading.Thread(target=self.scan_ports, args=(ip, puerto))
             t.start()
+            # # Para que no se creen demasiados hilos
+            # if puerto % 100 == 0:
+            #     t.join()
+            
 
 
     # Escaner de puertos para una ip
@@ -86,14 +123,14 @@ class Escaner:
         # RandShort() genera un puerto aleatorio para el scan por tanto el escaneo se realizara cada vez con un puerto diferente
         origin_port = scapy.RandShort()
         # Creamos un paquete TCP con la ip introducida por el usuario y el puerto que queremos escanear
-        packet = scapy.sr1(scapy.IP(dst=ip)/scapy.TCP(sport=origin_port, dport=puerto, flags="S"), timeout=0.0005, verbose=False)   
+        packet = scapy.sr1(scapy.IP(dst=ip)/scapy.TCP(sport=origin_port, dport=puerto, flags="S"), timeout=1, verbose=False)   
         if packet is not None:
             # perfcounter_start = time.perf_counter()
             if packet.haslayer(scapy.TCP):
                 if packet.getlayer(scapy.TCP).flags == 0x12:
                     print(str(puerto) + "\t\tOpen\t\t" + socket.getservbyport(puerto))
                     # Enviamos un paquete RST para cerrar la conexion
-                    scapy.sr1(scapy.IP(dst=ip)/scapy.TCP(sport=origin_port, dport=puerto, flags="R"), timeout=0.05, verbose=False)
+                    scapy.sr1(scapy.IP(dst=ip)/scapy.TCP(sport=origin_port, dport=puerto, flags="R"), timeout=1, verbose=False)
                 # elif packet.getlayer(scapy.TCP).flags == 0x14:
                 #     print(str(puerto) + "\t\tClosed\t\t" + socket.getservbyport(puerto))
             # elif packet.haslayer(scapy.ICMP):
@@ -123,17 +160,3 @@ class Escaner:
         #     list_of_ips.append(ip["ip"])
         # for ip in list_of_ips:
         #     self.scan
-        
-
-        
-
-
-    #############################################################################################################
-    #                                             ZONA PRINTS                                                   #
-    #############################################################################################################
-
-    def print_result_ip(scan_result):
-        print("IP\t\t\tMAC Address")
-        # Recorremos la lista de clientes encontrados
-        for client in scan_result:
-            print(client["ip"] + "\t\t" + client["mac"])
