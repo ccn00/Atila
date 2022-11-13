@@ -72,7 +72,7 @@ class EscanerRed:
     def __init__(self):
         self.active_computers = []
         self.menu = """
-        ESCANER DE RED
+        MENÚ DE ESCANEO DE RED
         1. Escaneo de red completa
         2. Escaneo pasando ip (con o sin mascara)
         3. Escaneo de puertos para las ip encontradas
@@ -99,7 +99,6 @@ class EscanerRed:
                 choice = self.get_input()
 
                 if choice == "1":
-                    os.system("clear")
                     scan1.scan_ip_range()
                     if scan1.client_list != []:
                         choice = input("¿Quiere guardar los resultados? (s/n): ") # Preguntamos si quiere guardar los resultados
@@ -107,25 +106,39 @@ class EscanerRed:
                             self.active_computers = scan1.client_list
 
                 elif choice == "2":
+                    
                     ip = input("Ejemplo de entrada -> 192.168.1.1 o 192.168.1.1/24 \nIntroduce una ip o un rango de ip: ")
-                    scan1.scan_ip(ip)
-                    if scan1.client_list != []:
-                        choice = input("¿Quiere guardar los resultados? (s/n): ") # Preguntamos si quiere guardar los resultados
-                        if choice == "s":
-                            self.active_computers = scan1.client_list
+                    scan1.check_ip(ip)
+                    if scan1.check_ip(ip):
+                        scan1.scan_ip(ip)
+                        if scan1.client_list != []:
+                            choice = input("¿Quiere guardar los resultados? (s/n): ") # Preguntamos si quiere guardar los resultados
+                            if choice == "s":
+                                self.active_computers = scan1.client_list
+                    else:
+                        print("Ip invalida")
                     
                 elif choice == "3":
                     if self.active_computers == []:
-                        print("No hay ninguna ip activa o no se ha realizado ningun escaneo")
+                        print("\nNo hay ninguna ip activa o no se ha realizado ningun escaneo")
                     else:
                         scan1.scan_ports_active_ips(self.active_computers)
 
                 elif choice == "4":
                     ip = input("Introduce la ip: ")
                     if scan1.check_ip(ip):
-                        scan1.scan_ports_thread(ip)
+                        # Comprobamos si la ip tiene mascara
+                        if "/" in ip:
+                            self.active_computers = []
+                            scan1.scan_ip(ip)
+                            self.active_computers = scan1.client_list
+                            for ip in self.active_computers:
+                                scan1.scan_ports_active_ips(self.active_computers)        
+                        else:
+                            scan1.scan_ports_thread(ip)
 
                 elif choice == "99":
+                    os.system("clear")
                     break
                 else:
                     print("Opcion invalida")
@@ -136,11 +149,13 @@ class EscanerRed:
 class AtaquesRed:
     def __init__(self):
         self.menu = """
+        MENU DE ATAQUES
         1. Ataque de denegacion de servicio
         2. Ataque de falsificacion de ip MitM (ICMP Redirect)
         3. Ataque de falsificacion de ip MitM (ARP Spoofing)
         4. Ataque de falsificacion de dns MitM (DNS Spoofing)
-        5. 
+        5. Entrada mediante exploit (vsftpd)
+        99. Atras 
         """
     
     def get_input(self):
@@ -157,7 +172,7 @@ class AtaquesRed:
                 choice = self.get_input()
 
                 if choice == "1":
-                    pass
+                    print("Ataque de denegacion de servicio NO IMPLEMENTADO")
                 elif choice == "2":
                     ip = input("Introduce la ip de la victima: ")
                     attack1.IcmpRedirect(ip)
@@ -165,10 +180,13 @@ class AtaquesRed:
                     ip = input("Introduce la ip de la victima: ")
                     attack1.ArpSpoofing(ip)
                 elif choice == "4":
-                    pass
+                    print("Ataque de falsificacion de dns NO IMPLEMENTADO")
                 elif choice == "5":
-                    pass
+                    ip = input("Introduce la ip de la victima: ")
+                    str(ip)
+                    attack1.exploit_vsftpd(ip)
                 elif choice == "99":
+                    os.system("clear")
                     break
                 else:
                     print("Opcion invalida")
