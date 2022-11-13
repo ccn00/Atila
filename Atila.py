@@ -16,9 +16,9 @@ if os.geteuid() != 0:
 import pyfiglet
 import logging
 import Escaner
+import Ataques
 
 ######################################################################
-
 
 
 class menu:
@@ -30,12 +30,13 @@ class menu:
         99. Exit
         """
 
-
     def get_input(self):
         return input("Elige una opcion: ")
 
     def clear(self):
         os.system("clear")
+
+
 
     def show(self):                 # Funcion para mostrar el banner y el menu 
         print(self.banner)          
@@ -55,7 +56,10 @@ class menu:
                     EscanerRed().run()
 
                 elif choice == "2":
-                    pass
+                    self.clear()
+                    # Hacemos un menu dentro de este para realizar ataques
+                    AtaquesRed().run()
+
                 elif choice == "99":
                     exit()
                 else:
@@ -79,6 +83,8 @@ class EscanerRed:
     def get_input(self):
         return input("Elige una opcion: ")
 
+    
+
     # Funcion para mostrar el menu de escaneo de red
     def show(self):
         print(self.menu)
@@ -95,6 +101,10 @@ class EscanerRed:
                 if choice == "1":
                     os.system("clear")
                     scan1.scan_ip_range()
+                    if scan1.client_list != []:
+                        choice = input("¿Quiere guardar los resultados? (s/n): ") # Preguntamos si quiere guardar los resultados
+                        if choice == "s":
+                            self.active_computers = scan1.client_list
 
                 elif choice == "2":
                     ip = input("Ejemplo de entrada -> 192.168.1.1 o 192.168.1.1/24 \nIntroduce una ip o un rango de ip: ")
@@ -123,7 +133,7 @@ class EscanerRed:
             print("\nSaliendo...")
             exit()
 
-class Ataques:
+class AtaquesRed:
     def __init__(self):
         self.menu = """
         1. Ataque de denegacion de servicio
@@ -132,8 +142,39 @@ class Ataques:
         4. Ataque de falsificacion de dns MitM (DNS Spoofing)
         5. 
         """
-        pass
+    
+    def get_input(self):
+        return input("Elige una opcion: ")
+    
+    def show(self):
+        print(self.menu)
 
+    def run(self):
+        attack1 = Ataques.Ataques()
+        try:
+            while True:              
+                self.show()
+                choice = self.get_input()
+
+                if choice == "1":
+                    pass
+                elif choice == "2":
+                    ip = input("Introduce la ip de la victima: ")
+                    attack1.IcmpRedirect(ip)
+                elif choice == "3":
+                    ip = input("Introduce la ip de la victima: ")
+                    attack1.ArpSpoofing(ip)
+                elif choice == "4":
+                    pass
+                elif choice == "5":
+                    pass
+                elif choice == "99":
+                    break
+                else:
+                    print("Opcion invalida")
+        except KeyboardInterrupt:
+            print("\nSaliendo...")
+            exit()
 
 # Quitamos los logs de scapy para que no se muestren por pantalla al ejecutar el programa
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
