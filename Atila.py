@@ -110,7 +110,12 @@ class EscanerRed:
                     ip = input("Ejemplo de entrada -> 192.168.1.1 o 192.168.1.1/24 \nIntroduce una ip o un rango de ip: ")
                     scan1.check_ip(ip)
                     if scan1.check_ip(ip):
-                        scan1.scan_ip(ip)
+                        # Comprobamos si viene con mascara
+                        if "/" in ip:
+                            scan1.scan_ip(ip)
+                        else:
+                            scan1.scan_unique_ip(ip)
+                        
                         if scan1.client_list != []:
                             choice = input("¿Quiere guardar los resultados? (s/n): ") # Preguntamos si quiere guardar los resultados
                             if choice == "s":
@@ -172,13 +177,15 @@ class AtaquesRed:
                 choice = self.get_input()
 
                 if choice == "1":
-                    print("Ataque de denegacion de servicio NO IMPLEMENTADO")
+                    ip = input("Introduce la ip: ")
+                    attack1.DoS(ip)
+                    
                 elif choice == "2":
                     ip = input("Introduce la ip de la victima: ")
                     attack1.IcmpRedirect(ip)
                 elif choice == "3":
                     ip = input("Introduce la ip de la victima: ")
-                    attack1.ArpSpoofing(ip)
+                    attack1.arp_spoof(ip)
                 elif choice == "4":
                     print("Ataque de falsificacion de dns NO IMPLEMENTADO")
                 elif choice == "5":
