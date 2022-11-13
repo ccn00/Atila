@@ -37,14 +37,30 @@ class Escaner:
             return False
         return True
 
-    # Escanea una ip o un rango de ips dadas por el usuario
+    # Comprobamos si la ip esta activa 
+    def scan_unique_ip(self, ip):
+        # Creamos un paquete ICMP con la ip introducida por el usuario
+        icmp_request = scapy.IP(dst=ip)/scapy.ICMP()
+        # Enviamos el paquete y recibimos la respuesta
+        answered_list = scapy.sr1(icmp_request, timeout=1, verbose=False)
+        # Obtenemos la mac de la ip con scapy
+        mac = scapy.getmacbyip(str(ip))
+        # Si la respuesta es None la ip no esta activa
+        if answered_list == None:
+            print("La ip no esta activa")
+        else:
+            print("La ip " + ip + " esta activa y tiene como MAC: " + mac)
+        
+        
+
+    # Escanea una la red completa dada una ip
     def scan_ip(self, ip):
         print ("Escaneando ip: " + ip)
         arp_request = scapy.ARP(pdst=ip)                    # Creamos un paquete ARP con la ip introducida por el usuario
         broadcast = scapy.Ether(dst="ff:ff:ff:ff:ff:ff")    # Creamos un paquete ethernet con la direccion de broadcast
         arp_request_broadcast = broadcast/arp_request       # Unimos los dos paquetes
         # Enviamos el paquete y recibimos la respuesta
-        answered_list = scapy.srp(arp_request_broadcast, timeout=1, verbose=False)[0]   
+        answered_list = scapy.srp(arp_request_broadcast, timeout=1, verbose=False)[0]  
 
         # Recorremos la lista de clientes encontrados
         for element in answered_list:
@@ -55,11 +71,13 @@ class Escaner:
 
         if len(self.client_list) == 0:
             print("No se han encontrado clientes")
-        else:
+        elif '/' in ip:
             # Mostramos los clientes encontrados en forma de tabla
             print("IP\t\t\tMAC Address")
             for client in self.client_list:
                 print(client["ip"] + "\t\t" + client["mac"])
+
+            
 
         return self.client_list
 
@@ -154,7 +172,6 @@ class Escaner:
     # Escaner de puertos de las ips activas encontradas en la red
     # Pasamos una lista de diccionarios con las ips y macs de los clientes encontrados
     def scan_ports_active_ips(self, client_list):
-        list_of_ips = []
         for ip in client_list:
             self.scan_ports_thread(ip["ip"])
         #     list_of_ips.append(ip["ip"])
